@@ -13,7 +13,9 @@ if not defined VSDIR (
 call "%VSDIR%\VC\Auxiliary\Build\vcvars64.bat" >nul || exit /b 1
 cd /d "%~dp0"
 if not exist build\obj mkdir build\obj
-set FLAGS=/nologo /std:c++20 /EHsc /W4 /WX /MT /DUNICODE /D_UNICODE /Fobuild\obj\
+rem /utf-8: the sources are UTF-8, which a non-UTF-8 system code page (e.g. 936) would otherwise misread as C4819.
+set FLAGS=/nologo /std:c++20 /utf-8 /EHsc /W4 /WX /MT /DUNICODE /D_UNICODE /Fobuild\obj\
 cl %FLAGS% /O2 src\main_win.cpp src\hooks_win.cpp src\simulate.cpp src\commands.cpp src\output.cpp src\json.cpp src\decision.cpp /Fe:build\hook-helper.exe /link user32.lib || exit /b 1
-cl %FLAGS% /Od tests\helper_tests.cpp src\decision.cpp src\commands.cpp src\macinput.cpp src\json.cpp src\output.cpp /Fe:build\helper_tests.exe || exit /b 1
+rem /Zc:preprocessor: the traditional preprocessor mis-tokenizes a raw string literal inside the CHECK macro's argument.
+cl %FLAGS% /Zc:preprocessor /Od tests\helper_tests.cpp src\decision.cpp src\commands.cpp src\macinput.cpp src\json.cpp src\output.cpp /Fe:build\helper_tests.exe || exit /b 1
 echo Built build\hook-helper.exe and build\helper_tests.exe
