@@ -89,6 +89,13 @@ tests/(Vitest,镜像 src/ 结构)· site/(浏览器 demo)· tools/(资产提取�
 6. **npm install 后 electron 二进制可能没下载**(国内网络):`ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ node node_modules/electron/install.js`。
 7. **调试利器**:`npm run dev -- -- --remote-debugging-port=9222` 后,CDP `/json` 能看到每个窗口(含 overlay/capture/answer),可直接查询页面内部状态、注入监听器——比截图猜快得多。
 
+## 五点五、多轮追问(问答模式 v2)
+
+- **aiVision** 重构为 `chatCompletion(cfg, messages, io)`:整个消息数组每次都发送;首条消息保留截图(约 1024 token/轮),这样"图里左上角是什么"这类追问有效;历史截断为首条+最近 19 条。
+- **answerManager** 持有对话,`ask(text)` 走 追加用户消息→AI→完成;失败的那条提问会从上下文取出,重试不会重复发送;generation 计数保证关窗后迟到的响应被丢弃。
+- **渲染层**把对话画成聊天式:用户右对齐气泡、AI 回答走 `markdown.ts`(解析产出纯数据树、渲染端构建 DOM,零 innerHTML,模型输出无法注入标记;链接只保留文本)。全屏模式取消"点击任意位置关闭"(与输入框冲突),改为 Esc/✕。
+- 设置新增 `aiFontSize`(12–28px)与 `aiShowThumbnail`(默认开),设置变更即时应用到已打开的对话窗口。
+
 ## 六、验证结论
 
 - `npm run typecheck` ✓;`npm test` 全量通过(含本次新增 27 个用例);`npm run test:helper` 444/444;`npm run build` ✓。
